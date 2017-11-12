@@ -11,3 +11,10 @@ html, body {
     bottom: 0px;
     position: absolute;
 }
+
+#filter-container {
+  height: 100%;
+  text-align: left;
+  width: 340px;
+  overflow: hidden;
+}

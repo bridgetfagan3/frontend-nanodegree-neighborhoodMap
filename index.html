@@ -7,11 +7,23 @@
   <link rel="stylesheet" href="css/style.css">
   <script src="js/app.js" async ></script>
   <script src="js/jquery.js" async ></script>
+  <script src="js/knockout-3.4.2.js" async></script>
+
 
   <title>Neighborhood Map</title>
 </head>
 <body>
-    <div id = "map"></div>
+  <nav id="filter-container">
+    <form action="">
+      <input id="search-box" type="text" data-bind= "value: searchKeyword" type="search" placeholder="Filter your search"/>
+    </form>
+    <ul data-bind="foreach: filterResults">
+      <li><a href="#" data-bind: "text: $data.name, click: clickedLocation"></a></li>
+
+    </ul>
+  </nav>
+    <div id="map"></div>
+
 
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC76TlvzrUXPFx1YTF7a7VpuDztSbX3OzA&callback=initMap">
