@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
   <script src="js/app.js" async ></script>
   <script src="js/jquery.js" async ></script>
   <script src="js/knockout-3.4.2.js" async></script>
+  
 
 
   <title>Neighborhood Map</title>
@@ -15,12 +17,11 @@
 <body>
   <nav id="filter-container">
     <form action="">
-      <input id="search-box" type="text" data-bind= "value: searchKeyword" type="search" placeholder="Filter your search"/>
+      <input id="search-box" data-bind = "value: searchWord" type="text"  type="search" placeholder="Filter your search"/>
     </form>
-    <ul data-bind="foreach: filterResults">
-      <li><a href="#" data-bind: "text: $data.name, click: clickedLocation"></a></li>
-
-    </ul>
+    <ul data-bind="foreach:filteredItems">
+      <li><a href="#" data-bind="text: $data.title, click: clickedMarker"></a></li>
+     </ul>
   </nav>
     <div id="map"></div>
 

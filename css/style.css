@@ -18,3 +18,31 @@ html, body {
   width: 340px;
   overflow: hidden;
 }
+
+ul {
+  padding: 0px;
+}
+li {
+  background-color: white;
+  list-style: none;
+  padding: 2px;
+  text-align: left;
+ font-family: 'Montserrat', sans-serif;
+}
+
+li:hover {
+  background-color:grey;
+}
+
+
+a {
+
+  text-decoration: none;
+  list-style: none;
+  display: block;
+  padding: 11px;
+}
+
+a:hover {
+  color: white;
+}

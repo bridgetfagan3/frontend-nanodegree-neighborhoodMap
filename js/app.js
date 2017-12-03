@@ -4,8 +4,9 @@ var map;
 var markers = [];
 
 //Model
-var locationsModel = [
-  {title: "The Museum of Science and Industry", location: {lat: 41.790573, lng: -87.583066}},
+//title and location points for the map
+var locations = [
+  {title: "Museum of Science and Industry", location: {lat: 41.790573, lng: -87.583066}},
   {title: "The Field Museum", location: {lat: 41.866261, lng: -87.616981}},
   {title: "Willis Tower", location: {lat: 41.878876, lng:-87.635915}},
   {title: "Soldier Field", location: {lat: 41.862313, lng:-87.616688}},
@@ -23,20 +24,196 @@ var locationsModel = [
 
 ];
 
+//Add markers to the map.
 
+
+var Marker = function(data){
+
+    var self = this;
+
+    this.icon = "http://www.crwflags.com/fotw/images/u/us-il-ch2.gif";
+
+    this.flagIcon = {
+      url: self.icon,
+      size: new google.maps.Size(30,20),
+      scaledSize: new google.maps.Size(30,20),
+      origin: new google.maps.Point(0,0)
+
+    };
+
+    this.title = data.title;
+    this.location = data.location;
+    this.lat = data.location.lat;
+    this.lng = data.location.lng;
+    this.image = "<div class ='marker-image'></div>";
+    this.activeClass = ko.observable(false);
+
+
+
+//create new marker and invoke function
+    this.createMarker = (function(){
+
+              self.newMarker = new google.maps.Marker({
+              position: self.location,
+              title: self.title,
+              map: map,
+              optimized: false,
+              icon: self.flagIcon,
+              animation: google.maps.Animation.DROP,
+            });
+
+            google.maps.event.addListener(self.newMarker, "click", toggleBounce);
+
+            function toggleBounce(){
+              if(self.newMarker.getAnimation() !=null) {
+                self.newMarker.setAnimation(null);
+              } else {
+                self.newMarker.setAnimation(google.maps.Animation.BOUNCE);
+                setTimeout(function(){ self.newMarker.setAnimation(null);}, 2000);
+              }
+            };
+
+      })();
+
+
+      this.getContent = function(){
+
+        /*
+        var foursquareInitalURL = "https://api.foursquare.com/v2/venues/explore";
+        var foursquareID = "?client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR";
+        var neighborhoodLL = "&ll=" + self.lat + "," + self.lng;
+        var version = "&v=20171104";
+        */
+        var foursquareInitialURL = "https://api.foursquare.com/v2/explore?client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&ll=" + self.lat + "," + self.lng ;
+
+
+        jQuery.ajax({
+
+          url: foursquareInitialURL,
+          dataType: "jsonp",
+
+        }).done(function(response){
+
+                  if (response){
+                       var response = response.groups.venue;
+                       var name = response.name;
+                       var photo = response.categories.icon;
+                       var phone = response.contact.formattedPhone;
+                       var twitter = response.contact.twitter;
+                       var address = response.location.address;
+                       var hours = response.hours.status;
+                       var website = response.url;
+                       var tips = response.tips.text;
+
+                       infowindow.setContent(name + website + photo + tips);
+
+                       infowindow.open(map);
+
+                       infowindow.setPosition(self.location);
+
+
+
+
+                  }
+          }).fail(function(response) {
+             console.log("error in ajax call to foursquare")
+             jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>")
+
+
+           });
+
+
+
+
+
+      };
+
+
+
+
+      this.clickedMarker = function(){
+
+        map.setCenter(self.location);
+
+        self.getContent();
+
+        activeMarker(this);
+
+      };
+
+};
 
 //Octopus
 
+function myViewModel(){
+    var self = this;
+
+    locationList = ko.observableArray([]);
+
+    activeMarker = ko.observable("");
+
+
+    locations.forEach(function(info){
+      locationList.push(new Marker(info))
+    });
+
+    this.searchWord = ko.observable("");
+
+
+    this.filteredItems = ko.computed(function(){
+
+        return locationList().filter(function(location) {
+
+          var display = true;
+
+          if(self.searchWord()){
+
+            var termIndex=
+            location.title.indexOf(self.searchWord());
+
+            if (termIndex !== -1){
+                display = true;
+            }
+
+            else {
+                display = false;
+            }
+          }
+
+          location.newMarker.setVisible(display);
+
+          return display;
+
+        });
+
+
+    });
+};
 
 
 
-//View
+//view
+
+function initApp() {
+  ko.applyBindings(new myViewModel());
+};
+
+
+
 
 function initMap() {
 
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: {lat:41.892959, lng:-87.618928},
-    zoom: 13
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: {lat:41.892959, lng:-87.618928},
+        zoom: 13
 
-  });
+      });
+
+      infowindow = new google.maps.InfoWindow({
+        content: "",
+        contentPosition: {}
+      })
+
+      initApp();
+
 }
