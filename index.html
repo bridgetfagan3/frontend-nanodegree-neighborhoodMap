@@ -9,21 +9,26 @@
   <script src="js/app.js" async ></script>
   <script src="js/jquery.js" async ></script>
   <script src="js/knockout-3.4.2.js" async></script>
-  
+
 
 
   <title>Neighborhood Map</title>
 </head>
 <body>
+  <h1 id="title-bar">Exploring Chicago</h1>
   <nav id="filter-container">
+
     <form action="">
-      <input id="search-box" data-bind = "value: searchWord" type="text"  type="search" placeholder="Filter your search"/>
+      <input id="search-box" data-bind = "value: searchWord, valueUpdate:'afterkeydown'" type="text"  type="search" placeholder="Filter your search"/>
     </form>
     <ul data-bind="foreach:filteredItems">
       <li><a href="#" data-bind="text: $data.title, click: clickedMarker"></a></li>
      </ul>
   </nav>
-    <div id="map"></div>
+
+      <div id="map"></div>
+
+
 
 
 

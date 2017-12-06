@@ -2,6 +2,14 @@
 
 var map;
 var markers = [];
+var  venue = [{
+      name: "",
+      website: "",
+      hours: "",
+      tip: "",
+  }];
+
+
 
 //Model
 //title and location points for the map
@@ -24,10 +32,11 @@ var locations = [
 
 ];
 
+
 //Add markers to the map.
 
 
-var Marker = function(data){
+var Marker = function(data, ){
 
     var self = this;
 
@@ -47,11 +56,13 @@ var Marker = function(data){
     this.lng = data.location.lng;
     this.image = "<div class ='marker-image'></div>";
     this.activeClass = ko.observable(false);
+    this.venue = venue;
 
 
 
 //create new marker and invoke function
     this.createMarker = (function(){
+
 
               self.newMarker = new google.maps.Marker({
               position: self.location,
@@ -62,21 +73,31 @@ var Marker = function(data){
               animation: google.maps.Animation.DROP,
             });
 
-            google.maps.event.addListener(self.newMarker, "click", toggleBounce);
-
-            function toggleBounce(){
-              if(self.newMarker.getAnimation() !=null) {
-                self.newMarker.setAnimation(null);
-              } else {
-                self.newMarker.setAnimation(google.maps.Animation.BOUNCE);
-                setTimeout(function(){ self.newMarker.setAnimation(null);}, 2000);
-              }
-            };
 
       })();
 
+      self.getInfoWindow = function(){
 
-      this.getContent = function(){
+      infowindow.open(map);
+
+      infowindow.setPosition(self.location);
+    };
+
+
+      this.toggleBounce = function(){
+        if(self.newMarker.getAnimation() !=null) {
+          self.newMarker.setAnimation(null);
+        } else {
+          self.newMarker.setAnimation(google.maps.Animation.BOUNCE);
+          setTimeout(function(){ self.newMarker.setAnimation(null);}, 2000);
+        }
+      };
+
+      google.maps.event.addListener(self.newMarker, "click", self.toggleBounce );
+      google.maps.event.addListener(self.newMarker, "click", self.getInfoWindow );
+
+
+      this.getContent = (function(){
 
         /*
         var foursquareInitalURL = "https://api.foursquare.com/v2/venues/explore";
@@ -84,62 +105,55 @@ var Marker = function(data){
         var neighborhoodLL = "&ll=" + self.lat + "," + self.lng;
         var version = "&v=20171104";
         */
-        var foursquareInitialURL = "https://api.foursquare.com/v2/explore?client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&ll=" + self.lat + "," + self.lng ;
+        var foursquareInitialURL = "https://api.foursquare.com/v2/venues/search?client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&ll=" + self.lat + "," + self.lng ;
 
 
         jQuery.ajax({
 
-          url: foursquareInitialURL,
+          url: "https://api.foursquare.com/v2/venues/search?ll=" + self.lat + "," + self.lng + "&client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&",
           dataType: "jsonp",
+          type: "GET",
 
-        }).done(function(response){
+          success: function(data){
 
-                  if (response){
-                       var response = response.groups.venue;
-                       var name = response.name;
-                       var photo = response.categories.icon;
-                       var phone = response.contact.formattedPhone;
-                       var twitter = response.contact.twitter;
-                       var address = response.location.address;
-                       var hours = response.hours.status;
-                       var website = response.url;
-                       var tips = response.tips.text;
+           var initialData = data.response.venues[0].items
 
-                       infowindow.setContent(name + website + photo + tips);
+           $.each(initalData, function(index){
 
-                       infowindow.open(map);
-
-                       infowindow.setPosition(self.location);
+             var name = initialData[index].name;
+             var url = initialData[index].url;
+             var content = name + '<br>' + '<a href="' + url + '" />' + url + '</a>';
+             var marker = self.newMarker;
+             marker.bindPopup(content);
 
 
+          });
 
+        },
 
-                  }
-          }).fail(function(response) {
+          fail: function(data){
              console.log("error in ajax call to foursquare")
              jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>")
 
+      }
 
-           });
+    });
 
-
-
-
-
-      };
-
-
+  })();
 
 
       this.clickedMarker = function(){
 
         map.setCenter(self.location);
 
-        self.getContent();
 
-        activeMarker(this);
+
+
+
+        activeMarker(this)
 
       };
+
 
 };
 
@@ -169,7 +183,7 @@ function myViewModel(){
           if(self.searchWord()){
 
             var termIndex=
-            location.title.indexOf(self.searchWord());
+            location.title.toLowerCase().indexOf(self.searchWord().toLowerCase());
 
             if (termIndex !== -1){
                 display = true;
@@ -180,7 +194,12 @@ function myViewModel(){
             }
           }
 
+
+          infowindow.close();
+
           location.newMarker.setVisible(display);
+
+
 
           return display;
 
