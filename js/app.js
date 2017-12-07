@@ -3,10 +3,12 @@
 var map;
 var markers = [];
 var  venue = [{
-      name: "",
-      website: "",
-      hours: "",
-      tip: "",
+
+      var self = this;
+
+      self.title = ko.observable();
+      self.url = ko.observable();
+      self.tips = ko.observable();
   }];
 
 
@@ -36,7 +38,7 @@ var locations = [
 //Add markers to the map.
 
 
-var Marker = function(data, ){
+var Marker = function(data){
 
     var self = this;
 
@@ -108,34 +110,32 @@ var Marker = function(data, ){
         var foursquareInitialURL = "https://api.foursquare.com/v2/venues/search?client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&ll=" + self.lat + "," + self.lng ;
 
 
-        jQuery.ajax({
+        $.ajax({
 
-          url: "https://api.foursquare.com/v2/venues/search?ll=" + self.lat + "," + self.lng + "&client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&",
+          url: "https://api.foursquare.com/v2/venues/search?query=" + self.title + "&ll=" + self.lat + "," + self.lng + "&client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&",
           dataType: "jsonp",
           type: "GET",
 
           success: function(data){
+            console.log("successful ajax GET");
 
-           var initialData = data.response.venues[0].items
+           newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
 
-           $.each(initalData, function(index){
+           newTitle = data.response.hasOwnProperty("title") ? newVenue.title : '';
 
-             var name = initialData[index].name;
-             var url = initialData[index].url;
-             var content = name + '<br>' + '<a href="' + url + '" />' + url + '</a>';
-             var marker = self.newMarker;
-             marker.bindPopup(content);
+            newURL = data.response.hasOwnProperty("url") ? newVenue.url : '';
 
-
-          });
+            newTips = data.response.hasOwnProperty("tips") ? newVenue.tips : '';
+           console.log("hi");
 
         },
 
-          fail: function(data){
-             console.log("error in ajax call to foursquare")
-             jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>")
+          error: function(e){
+             console.log("error in ajax call to foursquare");
+             jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>");
 
-      }
+            infowindow.setContent('<p>No FourSquare data available</p>');
+        }
 
     });
 
@@ -170,6 +170,8 @@ function myViewModel(){
     locations.forEach(function(info){
       locationList.push(new Marker(info))
     });
+
+
 
     this.searchWord = ko.observable("");
 
