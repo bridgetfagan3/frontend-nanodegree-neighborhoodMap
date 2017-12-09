@@ -1,15 +1,6 @@
 //global variables
 
 var map;
-var markers = [];
-var  venue = [{
-
-      var self = this;
-
-      self.title = ko.observable();
-      self.url = ko.observable();
-      self.tips = ko.observable();
-  }];
 
 
 
@@ -35,11 +26,12 @@ var locations = [
 ];
 
 
-//Add markers to the map.
 
 
+//Add marker and related items to the map.
 var Marker = function(data){
 
+//Set a flag image for the marker point to display on the map.
     var self = this;
 
     this.icon = "http://www.crwflags.com/fotw/images/u/us-il-ch2.gif";
@@ -52,17 +44,23 @@ var Marker = function(data){
 
     };
 
+//link location data to Marker function
     this.title = data.title;
     this.location = data.location;
     this.lat = data.location.lat;
     this.lng = data.location.lng;
-    this.image = "<div class ='marker-image'></div>";
+
+    this.newTitle = ko.observable("");
+    this.newURL = ko.observable("");
+    this.newPhone = ko.observable("");
+    this.contentString = ko.observable("");
+
     this.activeClass = ko.observable(false);
-    this.venue = venue;
 
 
 
-//create new marker and invoke function
+
+//create new marker and invoke function (IIFE)
     this.createMarker = (function(){
 
 
@@ -75,17 +73,76 @@ var Marker = function(data){
               animation: google.maps.Animation.DROP,
             });
 
+            $.ajax({
+
+              url: "https://api.foursquare.com/v2/venues/search?query=" + self.title + "&ll=" + self.lat + "," + self.lng + "&client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&",
+              dataType: "jsonp",
+              type: "GET",
+
+              success: function(data){
+
+                 if(data){
+                console.log("successful ajax GET");
+                 console.log(data);
+
+              //check for object prperties within the response data.
+               newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
+
+               self.newTitle = newValue.hasOwnProperty("name") ? newValue.name : '';
+
+               self.newURL = newValue.hasOwnProperty("url") ? newValue.url : '';
+
+               self.newPhone = newValue.contact.hasOwnProperty("formattedPhone") ? newValue.contact.formattedPhone : '';
+
+              //string of HTML for the info window
+                self.contentString = "<p><strong>" + self.newTitle + "<hr>" + "</strong></p>"+ "<br>" + "<a id='venue-website' href='" + self.newURL + "'>" + self.newURL + "</a>" + "<hr>" + "<p>" + self.newPhone + "</p>" ;
+                console.log(self.contentString);
+              }
+            },
+
+              error: function(e){
+                 console.log("error in ajax call to foursquare");
+                 jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>");
+                infowindow.setContent('<p>No FourSquare data available</p>');
+            },
+
+             always: function(data){
+
+             infowindow.setContent("<p>" + self.contentString + "</p>");
+             }
+
+          });
+
+
 
       })();
 
-      self.getInfoWindow = function(){
 
-      infowindow.open(map);
+//Set up the info window and get foursquare data via ajax call.
+
+      this.getContent = function() {
+
+        map.setCenter(self.location);
+
+  //function to open, set location, and get content of info window
+  function getInfoWindow() {
 
       infowindow.setPosition(self.location);
-    };
+
+    infowindow.open(map);
+
+    infowindow.setContent("<p>" + self.contentString + "</p>");
+//'<div class="infoWindow"><p id="venueTitle"></p><br><p class="venueURL"></p><br><p class="venueTips"></p></div>'
+};
+
+  getInfoWindow();
+  self.toggleBounce();
 
 
+  };
+
+
+//function to set marker animation
       this.toggleBounce = function(){
         if(self.newMarker.getAnimation() !=null) {
           self.newMarker.setAnimation(null);
@@ -95,69 +152,21 @@ var Marker = function(data){
         }
       };
 
+
+//Listeners to set animation and get the foursquare data when marker is clicked.
       google.maps.event.addListener(self.newMarker, "click", self.toggleBounce );
-      google.maps.event.addListener(self.newMarker, "click", self.getInfoWindow );
+      google.maps.event.addListener(self.newMarker, "click", self.getContent );
 
 
-      this.getContent = (function(){
-
-        /*
-        var foursquareInitalURL = "https://api.foursquare.com/v2/venues/explore";
-        var foursquareID = "?client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR";
-        var neighborhoodLL = "&ll=" + self.lat + "," + self.lng;
-        var version = "&v=20171104";
-        */
-        var foursquareInitialURL = "https://api.foursquare.com/v2/venues/search?client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&ll=" + self.lat + "," + self.lng ;
-
-
-        $.ajax({
-
-          url: "https://api.foursquare.com/v2/venues/search?query=" + self.title + "&ll=" + self.lat + "," + self.lng + "&client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&",
-          dataType: "jsonp",
-          type: "GET",
-
-          success: function(data){
-            console.log("successful ajax GET");
-
-           newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
-
-           newTitle = data.response.hasOwnProperty("title") ? newVenue.title : '';
-
-            newURL = data.response.hasOwnProperty("url") ? newVenue.url : '';
-
-            newTips = data.response.hasOwnProperty("tips") ? newVenue.tips : '';
-           console.log("hi");
-
-        },
-
-          error: function(e){
-             console.log("error in ajax call to foursquare");
-             jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>");
-
-            infowindow.setContent('<p>No FourSquare data available</p>');
-        }
-
-    });
-
-  })();
-
-
-      this.clickedMarker = function(){
-
-        map.setCenter(self.location);
-
-
-
-
-
-        activeMarker(this)
-
-      };
+      this.activeMarker = function(){
+        getInfoWindow();
+        self.toggleBounce();
+      }
 
 
 };
 
-//Octopus
+//Octopus aka ViewModel
 
 function myViewModel(){
     var self = this;
@@ -165,6 +174,10 @@ function myViewModel(){
     locationList = ko.observableArray([]);
 
     activeMarker = ko.observable("");
+
+    valueContent = ko.observable("");
+
+
 
 
     locations.forEach(function(info){
@@ -176,6 +189,7 @@ function myViewModel(){
     this.searchWord = ko.observable("");
 
 
+//knockout function to filter list times during a search.
     this.filteredItems = ko.computed(function(){
 
         return locationList().filter(function(location) {
@@ -214,6 +228,7 @@ function myViewModel(){
 
 
 //view
+//set knockout bindings
 
 function initApp() {
   ko.applyBindings(new myViewModel());
@@ -221,7 +236,7 @@ function initApp() {
 
 
 
-
+//initiate Google Map
 function initMap() {
 
       map = new google.maps.Map(document.getElementById("map"), {
@@ -235,6 +250,10 @@ function initMap() {
         contentPosition: {}
       })
 
+    
+
       initApp();
+
+
 
 }
