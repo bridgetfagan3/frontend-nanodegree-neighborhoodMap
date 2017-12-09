@@ -1,49 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="css/style.css">
-  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Alegreya+Sans+SC:800|Arimo:700|Bungee|Chewy|Montserrat+Subrayada:700" rel="stylesheet">
-  <script src="js/app.js" async ></script>
-  <script src="js/jquery.js" async ></script>
-  <script src="js/knockout-3.4.2.js" async></script>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Alegreya+Sans+SC:800|Arimo:700|Bungee|Chewy|Montserrat+Subrayada:700" rel="stylesheet">
+
+    <script src="js/app.js" async ></script>
+    <script src="js/jquery.js" async ></script>
+    <script src="js/knockout-3.4.2.js" async></script>
+
+    <title>Neighborhood Map</title>
+
+  </head>
+  <body>
 
 
+  <div class="continer">
+      <h1 id="title-bar">Exploring Chicago</h1>
 
-  <title>Neighborhood Map</title>
-</head>
-<body>
-
-
-<div class="continer">
-  <h1 id="title-bar">Exploring Chicago</h1>
-
-
-  <nav id="filter-container">
-
-    <form action="">
-      <input id="search-box" data-bind = "value: searchWord, valueUpdate:'afterkeydown'" type="text"  type="search" placeholder="Filter your search"/>
-    </form>
-    <ul data-bind="foreach:filteredItems">
-      <li><a href="#" data-bind="text: $data.title, click: getContent"></a></li>
-     </ul>
-  </nav>
-
-  <div id="map"></div>
-  </div>
+      <nav id="filter-container">
+          <form action="">
+              <input id="search-box" data-bind = "value: searchWord, valueUpdate:'afterkeydown'" type="text"  type="search" placeholder="Filter your search"/>
+          </form>
+          <ul data-bind="foreach:filteredItems">
+              <li><a href="#" data-bind="text: $data.title, click: getContent"></a></li>
+           </ul>
+      </nav>
 
       <div id="map"></div>
+    </div>
 
-
-
-
-
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC76TlvzrUXPFx1YTF7a7VpuDztSbX3OzA&callback=initMap">
-      </script>
-</body>
-
+      <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC76TlvzrUXPFx1YTF7a7VpuDztSbX3OzA&callback=initMap"></script>
+  </body>
 
 </html>

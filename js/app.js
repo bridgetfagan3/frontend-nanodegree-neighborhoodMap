@@ -3,7 +3,6 @@
 var map;
 
 
-
 //Model
 //title and location points for the map
 var locations = [
@@ -28,7 +27,7 @@ var locations = [
 
 
 
-//Add marker and related items to the map.
+// marker function and related items to the map.
 var Marker = function(data){
 
 //Set a flag image for the marker point to display on the map.
@@ -73,6 +72,7 @@ var Marker = function(data){
               animation: google.maps.Animation.DROP,
             });
 
+//ajax call for foursquare api
             $.ajax({
 
               url: "https://api.foursquare.com/v2/venues/search?query=" + self.title + "&ll=" + self.lat + "," + self.lng + "&client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&",
@@ -82,33 +82,35 @@ var Marker = function(data){
               success: function(data){
 
                  if(data){
-                console.log("successful ajax GET");
-                 console.log(data);
+                   console.log("successful ajax GET");
+                   console.log(data);
 
-              //check for object prperties within the response data.
-               newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
+                  //check for object prperties within the response data.
+                   newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
 
-               self.newTitle = newValue.hasOwnProperty("name") ? newValue.name : '';
+                   self.newTitle = newValue.hasOwnProperty("name") ? newValue.name : '';
 
-               self.newURL = newValue.hasOwnProperty("url") ? newValue.url : '';
+                   self.newURL = newValue.hasOwnProperty("url") ? newValue.url : '';
 
-               self.newPhone = newValue.contact.hasOwnProperty("formattedPhone") ? newValue.contact.formattedPhone : '';
+                   self.newPhone = newValue.contact.hasOwnProperty("formattedPhone") ? newValue.contact.formattedPhone : '';
 
-              //string of HTML for the info window
-                self.contentString = "<p><strong>" + self.newTitle + "<hr>" + "</strong></p>"+ "<br>" + "<a id='venue-website' href='" + self.newURL + "'>" + self.newURL + "</a>" + "<hr>" + "<p>" + self.newPhone + "</p>" ;
-                console.log(self.contentString);
-              }
-            },
+                  //string of HTML for the info window
+                    self.contentString = "<p><strong>" + self.newTitle + "<hr>" + "</strong></p>"+ "<br>" + "<a id='venue-website' href='" + self.newURL + "'>" + self.newURL + "</a>" + "<hr>" + "<p>" + self.newPhone + "</p>" ;
+                    console.log(self.contentString);
+                  }
+                },
 
-              error: function(e){
+            error: function(e){
                  console.log("error in ajax call to foursquare");
+
                  jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>");
-                infowindow.setContent('<p>No FourSquare data available</p>');
-            },
+                 infowindow.setContent('<p>No FourSquare data available</p>');
+              },
 
-             always: function(data){
+            always: function(data){
 
-             infowindow.setContent("<p>" + self.contentString + "</p>");
+                infowindow.setContent("<p>" + self.contentString + "</p>");
+
              }
 
           });
@@ -118,22 +120,21 @@ var Marker = function(data){
       })();
 
 
-//Set up the info window and get foursquare data via ajax call.
+//Set up the info window and call
 
       this.getContent = function() {
 
         map.setCenter(self.location);
 
-  //function to open, set location, and get content of info window
-  function getInfoWindow() {
+        //function to open, set location, and get content of info window
+        function getInfoWindow() {
 
-      infowindow.setPosition(self.location);
+          infowindow.setPosition(self.location);
 
-    infowindow.open(map);
+          infowindow.open(map);
 
-    infowindow.setContent("<p>" + self.contentString + "</p>");
-//'<div class="infoWindow"><p id="venueTitle"></p><br><p class="venueURL"></p><br><p class="venueTips"></p></div>'
-};
+
+          };
 
   getInfoWindow();
   self.toggleBounce();
@@ -177,16 +178,15 @@ function myViewModel(){
 
     valueContent = ko.observable("");
 
+   this.searchWord = ko.observable("");
 
 
 
+//pushes location items into knockout array
     locations.forEach(function(info){
       locationList.push(new Marker(info))
     });
 
-
-
-    this.searchWord = ko.observable("");
 
 
 //knockout function to filter list times during a search.
@@ -236,7 +236,7 @@ function initApp() {
 
 
 
-//initiate Google Map
+//initiate knockout and Google map
 function initMap() {
 
       map = new google.maps.Map(document.getElementById("map"), {
@@ -250,10 +250,7 @@ function initMap() {
         contentPosition: {}
       })
 
-    
 
       initApp();
-
-
 
 }
