@@ -133,6 +133,8 @@ var Marker = function(data){
 
           infowindow.open(map);
 
+          infowindow.setContent("<p>" + self.contentString + "</p>");
+
 
           };
 
