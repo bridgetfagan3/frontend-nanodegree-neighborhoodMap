@@ -2,7 +2,7 @@
 
 Neighborhood Map Project for Udacity Front-end Web Developer Nanodegree
 
-## Instruction
+## Instructions
 
 Download all the files and open index.html in your browser to view the feedreader.
 
