@@ -256,3 +256,9 @@ function initMap() {
       initApp();
 
 }
+
+
+function googleMapsApiErrorHandler(){
+	console.log('Error: Google maps API');
+	$('#map').append('<p class="map-error">We\'re having trouble loading Google Map. Check back soon!</p>');
+}
