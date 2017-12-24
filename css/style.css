@@ -61,6 +61,15 @@ ul {
 }
 
 
+#hamburger {
+  margin-left: -10px;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  outline-color: none;
+  outline-style: none;
+}
+
+
 #map {
   height: 120%;
   width: 110%;
@@ -94,25 +103,27 @@ ul {
 }
 
 
-@media  screen and (max-width: 550px){
-
-  li {
-    display: none;
-    z-index: 1;
-    left: 0px;
+@media screen and (max-width: 750px) {
+  #hamburger {
+    display: inline-block;
+    margin-left: -5px;
+    margin-top: 0px;
+    margin-bottom: 0px;
   }
 
 
   #filter-container {
-    z-index: 1;
-    width: 600px;
+    z-index: 1000000000;
+    position:absolute;
+    margin-top: -10px;
+    display: none;
   }
 
 
   #map {
-    overflow: visible;
-    z-index: 100px;
     left: 0px;
+    top: 35px;
+    z-index: 1;
   }
 
 

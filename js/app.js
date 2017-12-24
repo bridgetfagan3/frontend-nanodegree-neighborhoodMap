@@ -1,7 +1,7 @@
 //global variables
 
 var map;
-
+var listDisplay = false;
 
 //Model
 //title and location points for the map
@@ -31,140 +31,113 @@ var locations = [
 var Marker = function(data){
 
 //Set a flag image for the marker point to display on the map.
-    var self = this;
+  var self = this;
 
-    this.icon = "http://www.crwflags.com/fotw/images/u/us-il-ch2.gif";
+  this.icon = "http://www.crwflags.com/fotw/images/u/us-il-ch2.gif";
 
-    this.flagIcon = {
-      url: self.icon,
-      size: new google.maps.Size(30,20),
-      scaledSize: new google.maps.Size(30,20),
-      origin: new google.maps.Point(0,0)
+  this.flagIcon = {
+    url: self.icon,
+    size: new google.maps.Size(30,20),
+    scaledSize: new google.maps.Size(30,20),
+    origin: new google.maps.Point(0,0)
 
-    };
+  };
 
 //link location data to Marker function
-    this.title = data.title;
-    this.location = data.location;
-    this.lat = data.location.lat;
-    this.lng = data.location.lng;
+  this.title = data.title;
+  this.location = data.location;
+  this.lat = data.location.lat;
+  this.lng = data.location.lng;
 
-    this.newTitle = ko.observable("");
-    this.newURL = ko.observable("");
-    this.newPhone = ko.observable("");
-    this.contentString = ko.observable("");
-
-    this.activeClass = ko.observable(false);
-
-
+  this.newTitle = ko.observable("");
+  this.newURL = ko.observable("");
+  this.newPhone = ko.observable("");
+  this.contentString = ko.observable("");
+  this.activeClass = ko.observable(false);
 
 
 //create new marker and invoke function (IIFE)
-    this.createMarker = (function(){
-
-
-              self.newMarker = new google.maps.Marker({
-              position: self.location,
-              title: self.title,
-              map: map,
-              optimized: false,
-              icon: self.flagIcon,
-              animation: google.maps.Animation.DROP,
-            });
+  this.createMarker = (function(){
+      self.newMarker = new google.maps.Marker({
+        position: self.location,
+        title: self.title,
+        map: map,
+        optimized: false,
+        icon: self.flagIcon,
+        animation: google.maps.Animation.DROP,
+      });
 
 //ajax call for foursquare api
-            $.ajax({
+      $.ajax({
+        url: "https://api.foursquare.com/v2/venues/search?query=" + self.title + "&ll=" + self.lat + "," + self.lng + "&client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&",
+        dataType: "jsonp",
+        type: "GET",
 
-              url: "https://api.foursquare.com/v2/venues/search?query=" + self.title + "&ll=" + self.lat + "," + self.lng + "&client_id=MNKQWW4XDG2NNWXOJFIZYDPZU3FDMZJGYKN2GJPD4DJWBTX0&client_secret=I5SAHZ1YCC4ENSWKOQUWEGEDPOJYE2TN0ZYZM3AI5T4HEQWR&v=20171104&",
-              dataType: "jsonp",
-              type: "GET",
+        success: function(data){
+          if(data){
+            console.log("successful ajax GET");
+            console.log(data);
 
-              success: function(data){
+//check for object prperties within the response data.
+            newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
+            self.newTitle = newValue.hasOwnProperty("name") ? newValue.name : '';
+            self.newURL = newValue.hasOwnProperty("url") ? newValue.url : '';
+            self.newPhone = newValue.contact.hasOwnProperty("formattedPhone") ? newValue.contact.formattedPhone : '';
+//string of HTML for the info window
+            self.contentString = "<p><strong>" + self.newTitle + "<hr>" + "</strong></p>"+ "<br>" + "<a id='venue-website' href='" + self.newURL + "'>" + self.newURL + "</a>" + "<hr>" + "<p>" + self.newPhone + "</p>" ;
+            console.log(self.contentString);
+          }
+        },
 
-                 if(data){
-                   console.log("successful ajax GET");
-                   console.log(data);
+        error: function(e){
+          console.log("error in ajax call to foursquare");
+          jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>");
+          infowindow.setContent('<p>No FourSquare data available</p>');
+        },
 
-                  //check for object prperties within the response data.
-                   newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
+        always: function(data){
+          infowindow.setContent("<p>" + self.contentString + "</p>");
+        }
 
-                   self.newTitle = newValue.hasOwnProperty("name") ? newValue.name : '';
-
-                   self.newURL = newValue.hasOwnProperty("url") ? newValue.url : '';
-
-                   self.newPhone = newValue.contact.hasOwnProperty("formattedPhone") ? newValue.contact.formattedPhone : '';
-
-                  //string of HTML for the info window
-                    self.contentString = "<p><strong>" + self.newTitle + "<hr>" + "</strong></p>"+ "<br>" + "<a id='venue-website' href='" + self.newURL + "'>" + self.newURL + "</a>" + "<hr>" + "<p>" + self.newPhone + "</p>" ;
-                    console.log(self.contentString);
-                  }
-                },
-
-            error: function(e){
-                 console.log("error in ajax call to foursquare");
-
-                 jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>");
-                 infowindow.setContent('<p>No FourSquare data available</p>');
-              },
-
-            always: function(data){
-
-                infowindow.setContent("<p>" + self.contentString + "</p>");
-
-             }
-
-          });
-
-
-
-      })();
+      });
+  })();
 
 
 //Set up the info window and call
+  this.getContent = function() {
+    map.setCenter(self.location);
 
-      this.getContent = function() {
-
-        map.setCenter(self.location);
-
-        //function to open, set location, and get content of info window
-        function getInfoWindow() {
-
-          infowindow.setPosition(self.location);
-
-          infowindow.open(map);
-
-          infowindow.setContent("<p>" + self.contentString + "</p>");
-
-
-          };
-
-  getInfoWindow();
-  self.toggleBounce();
-
-
+//function to open, set location, and get content of info window
+    function getInfoWindow() {
+      infowindow.setPosition(self.location);
+      infowindow.open(map);
+      infowindow.setContent("<p>" + self.contentString + "</p>");
+    };
+    getInfoWindow();
+    self.toggleBounce();
   };
 
 
 //function to set marker animation
-      this.toggleBounce = function(){
-        if(self.newMarker.getAnimation() !=null) {
-          self.newMarker.setAnimation(null);
-        } else {
-          self.newMarker.setAnimation(google.maps.Animation.BOUNCE);
-          setTimeout(function(){ self.newMarker.setAnimation(null);}, 2000);
-        }
-      };
+  this.toggleBounce = function(){
+    if(self.newMarker.getAnimation() !=null) {
+      self.newMarker.setAnimation(null);
+    } else {
+      self.newMarker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(function(){ self.newMarker.setAnimation(null);}, 2000);
+    }
+  };
 
 
 //Listeners to set animation and get the foursquare data when marker is clicked.
-      google.maps.event.addListener(self.newMarker, "click", self.toggleBounce );
-      google.maps.event.addListener(self.newMarker, "click", self.getContent );
+  google.maps.event.addListener(self.newMarker, "click", self.toggleBounce );
+  google.maps.event.addListener(self.newMarker, "click", self.getContent );
 
 
-      this.activeMarker = function(){
-        getInfoWindow();
-        self.toggleBounce();
-      }
+  this.ActiveMarker = function(){
+    getInfoWindow();
+    self.toggleBounce();
+  }
 
 
 };
@@ -172,59 +145,40 @@ var Marker = function(data){
 //Octopus aka ViewModel
 
 function myViewModel(){
-    var self = this;
-
-    locationList = ko.observableArray([]);
-
-    activeMarker = ko.observable("");
-
-    valueContent = ko.observable("");
-
-   this.searchWord = ko.observable("");
-
-
+  var self = this;
+  locationList = ko.observableArray([]);
+  ActiveMarker = ko.observable("");
+  valueContent = ko.observable("");
+  this.searchWord = ko.observable("");
 
 //pushes location items into knockout array
-    locations.forEach(function(info){
-      locationList.push(new Marker(info))
-    });
-
-
+  locations.forEach(function(info){
+    locationList.push(new Marker(info))
+  });
 
 //knockout function to filter list times during a search.
-    this.filteredItems = ko.computed(function(){
+  this.filteredItems = ko.computed(function(){
+    return locationList().filter(function(location) {
+      var display = true;
+      if(self.searchWord()){
+        var termIndex=location.title.toLowerCase().indexOf(self.searchWord().toLowerCase());
+        if (termIndex !== -1){
+          display = true;
+        } else {
+          display = false;
+        }
+      }
 
-        return locationList().filter(function(location) {
-
-          var display = true;
-
-          if(self.searchWord()){
-
-            var termIndex=
-            location.title.toLowerCase().indexOf(self.searchWord().toLowerCase());
-
-            if (termIndex !== -1){
-                display = true;
-            }
-
-            else {
-                display = false;
-            }
-          }
-
-
-          infowindow.close();
-
-          location.newMarker.setVisible(display);
-
-
-
-          return display;
-
-        });
-
+      infowindow.close();
+      location.newMarker.setVisible(display);
+      return display;
 
     });
+  });
+
+  $("#hamburger").click(function(){
+    $("#filter-container").toggle();
+  });
 };
 
 
@@ -240,23 +194,19 @@ function initApp() {
 
 //initiate knockout and Google map
 function initMap() {
-
-      map = new google.maps.Map(document.getElementById("map"), {
+  map = new google.maps.Map(document.getElementById("map"), {
         center: {lat:41.892959, lng:-87.618928},
         zoom: 13
+  });
 
-      });
-
-      infowindow = new google.maps.InfoWindow({
+  infowindow = new google.maps.InfoWindow({
         content: "",
         contentPosition: {}
-      })
+  });
 
-
-      initApp();
+  initApp();
 
 }
-
 
 function googleMapsApiErrorHandler(){
 	console.log('Error: Google maps API');
