@@ -73,32 +73,21 @@ var Marker = function(data){
         dataType: "jsonp",
         type: "GET",
 
-        success: function(data){
-          if(data){
-            console.log("successful ajax GET");
-            console.log(data);
-
+      }).done(function(data){
+        console.log("successful ajax GET");
+        console.log(data);
 //check for object prperties within the response data.
-            newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
-            self.newTitle = newValue.hasOwnProperty("name") ? newValue.name : '';
-            self.newURL = newValue.hasOwnProperty("url") ? newValue.url : '';
-            self.newPhone = newValue.contact.hasOwnProperty("formattedPhone") ? newValue.contact.formattedPhone : '';
-//string of HTML for the info window
-            self.contentString = "<p><strong>" + self.newTitle + "<hr>" + "</strong></p>"+ "<br>" + "<a id='venue-website' href='" + self.newURL + "'>" + self.newURL + "</a>" + "<hr>" + "<p>" + self.newPhone + "</p>" ;
-            console.log(self.contentString);
-          }
-        },
-
-        error: function(e){
-          console.log("error in ajax call to foursquare");
-          jQuery("#foursquare-API-error").html("<h3> An error has occured when retrieving data. Please try refreshing page.</h3>");
-          infowindow.setContent('<p>No FourSquare data available</p>');
-        },
-
-        always: function(data){
-          infowindow.setContent("<p>" + self.contentString + "</p>");
-        }
-
+        newValue = data.response.hasOwnProperty("venues") ? data.response.venues[0] : '';
+        self.newTitle = newValue.hasOwnProperty("name") ? newValue.name : '';
+        self.newURL = newValue.hasOwnProperty("url") ? newValue.url : '';
+        self.newPhone = newValue.contact.hasOwnProperty("formattedPhone") ? newValue.contact.formattedPhone : '';
+//error call and string of HTML for the info window
+        self.contentString = "<p><strong>" + self.newTitle + "<hr>" + "</strong></p>"+ "<br>" + "<a id='venue-website' href='" + self.newURL + "'>" + self.newURL + "</a>" + "<hr>" + "<p>" + self.newPhone + "</p>" ;
+      }).fail(function(e){
+        console.log("error in ajax call to foursquare");
+        self.contentString = "Foursquare data is unavailable, try again later.";
+      }).always(function(){
+        infowindow.setContent("<p>" + self.contentString + "</p>");
       });
   })();
 
@@ -144,7 +133,7 @@ var Marker = function(data){
 
 //Octopus aka ViewModel
 
-function myViewModel(){
+function MyViewModel(){
   var self = this;
   locationList = ko.observableArray([]);
   ActiveMarker = ko.observable("");
@@ -187,7 +176,7 @@ function myViewModel(){
 //set knockout bindings
 
 function initApp() {
-  ko.applyBindings(new myViewModel());
+  ko.applyBindings(new MyViewModel());
 };
 
 
